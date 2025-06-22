@@ -2,6 +2,8 @@ from flask import Flask, render_template,request
 from dotenv import load_dotenv
 import os
 import tweepy
+import time
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -30,11 +32,34 @@ def get_twitter_client():
 
 app = Flask(__name__)
 
+# Rate limit tracking
+last_request_time = 0
+request_count = 0
+
+def handle_rate_limit():
+    global last_request_time, request_count
+    
+    current_time = time.time()
+    elapsed = current_time - last_request_time
+    
+    # Twitter's standard v2 API has 300 requests/15min window (20 requests/min)
+    if elapsed < 60:  # If less than a minute since last request
+        request_count += 1
+        if request_count >= 15:  # Stay safely under limit
+            wait_time = 60 - elapsed
+            time.sleep(wait_time)
+            request_count = 0
+    else:
+        request_count = 1
+    
+    last_request_time = time.time()
+
 @app.route("/")
 def MyTweetFeeds():
     client = get_twitter_client()
     next_token = request.args.get('next_token')
     try:
+        handle_rate_limit()
         # Get user ID
         user_info = client.get_me()
         if not user_info.data:
@@ -65,8 +90,15 @@ def MyTweetFeeds():
                 })
         return render_template('index.html', 
                                     tweets=tweets,
-                                    next_token=response.meta.get('next_token') if response.meta else None)
+                                    next_token=response.meta.get('next_token') if response.meta else None,
+                                    reset_time=datetime.now().strftime('%H:%M:%S'))
 
+    except tweepy.TooManyRequests as e:
+        # Calculate wait time (Twitter usually provides this in headers)
+        reset_time = int(e.response.headers.get('x-rate-limit-reset', time.time() + 900))
+        wait_seconds = max(reset_time - time.time(), 0)
+        return render_template('rate_limit.html', wait_seconds=wait_seconds)
+        
     except Exception as e:
         return render_template('index.html', error=str(e))
 

@@ -47,6 +47,17 @@
 <body class="bg-light">
     <div class="container py-5">
         <div class="row justify-content-center">
+        	{% if reset_time %}
+        	<div class="container">
+        	    <div class="row justify-content-center">
+        	        <div class="col-lg-6">
+        	            <div class="alert alert-info text-center py-2 mb-3">
+        	                <small>API Window Reset: {{ reset_time }} | Requests: {{ request_count }}/15 per minute</small>
+        	            </div>
+        	        </div>
+        	    </div>
+        	</div>
+        	{% endif %}
             <div class="col-lg-6">
                 {% if error %}
                     <div class="alert alert-danger">{{ error }}</div>
