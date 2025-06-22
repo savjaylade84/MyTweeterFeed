@@ -10,7 +10,9 @@ Dependent(must install)
 Website<br>
 [Website Link](https://mytweeterfeed.onrender.com/)
 <br>
-
+Note:<br> 
+There's limited request in the api(monthly for free account) so when you see a <br>
+error message related to that don't mind it.<br><br> 
 To Run The Code<br>
 `python3 -m venv venv && source venv/bin/activate` <br>
 `pip install flask python-dotenv tweepy requests`<br>
