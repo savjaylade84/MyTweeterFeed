@@ -1,0 +1,2 @@
+client-id = S1JpV3VXaUFTcEppMjIzTGVrR0E6MTpjaQ
+client-secret = NfnX02HGUKdtubRHzDPmLnqxvwbAOH6Cl9g9mn4_EbeTDL1fp-

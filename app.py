@@ -1,3 +1,5 @@
+
+
 from flask import Flask, render_template,request
 from dotenv import load_dotenv
 import os
@@ -49,10 +51,10 @@ def handle_rate_limit():
             wait_time = 60 - elapsed
             time.sleep(wait_time)
             request_count = 0
+            last_request_time = time.time()
     else:
         request_count = 1
-    
-    last_request_time = time.time()
+        last_request_time = time.time()
 
 @app.route("/")
 def MyTweetFeeds():
@@ -69,7 +71,7 @@ def MyTweetFeeds():
 
         response = client.get_users_tweets(
             id=user_id,
-            max_results=10,
+            max_results=5,
             pagination_token = next_token,
             exclude=["retweets", "replies"],
             tweet_fields=["created_at"],
@@ -79,15 +81,16 @@ def MyTweetFeeds():
 
         tweets = []
         if response.data:
-            users = {u.id: u for u in response.includes['users']}
+            users = {u.id: u for u in response.includes.get('users', [])}
         
             for tweet in response.data:
-                user = users[tweet.author_id]
-                tweets.append({
-                    'created_at':tweet.created_at.strftime('%b %d, %Y at %H:%M'),
-                    'content':tweet.text,
-                    'profile_image': user.profile_image_url.replace('_normal', '') if user.profile_image_url else None
-                })
+                user = users.get(tweet.author_id)
+                if user:
+                    tweets.append({
+                        'created_at':tweet.created_at.strftime('%b %d, %Y at %H:%M'),
+                        'content':tweet.text,
+                        'profile_image': user.profile_image_url.replace('_normal', '') if user.profile_image_url else None
+                    })
         return render_template('index.html', 
                                     tweets=tweets,
                                     next_token=response.meta.get('next_token') if response.meta else None,
@@ -103,4 +106,4 @@ def MyTweetFeeds():
         return render_template('index.html', error=str(e))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
