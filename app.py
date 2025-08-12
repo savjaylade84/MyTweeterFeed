@@ -71,7 +71,7 @@ def MyTweetFeeds():
 
         response = client.get_users_tweets(
             id=user_id,
-            max_results=5,
+            max_results=3,
             pagination_token = next_token,
             exclude=["retweets", "replies"],
             tweet_fields=["created_at"],
